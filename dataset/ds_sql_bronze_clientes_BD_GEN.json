@@ -1,0 +1,32 @@
+{
+	"name": "ds_sql_bronze_clientes_BD_GEN",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_db_crm",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "BRONZE"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "CID",
+				"type": "nvarchar"
+			},
+			{
+				"name": "BDATE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "GEN",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "bronze",
+			"table": "Clientes_BD_GEN"
+		}
+	}
+}

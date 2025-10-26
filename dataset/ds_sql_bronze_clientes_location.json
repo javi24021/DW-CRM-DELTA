@@ -1,0 +1,28 @@
+{
+	"name": "ds_sql_bronze_clientes_location",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_db_crm",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "BRONZE"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "CID",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CNTRY",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "bronze",
+			"table": "Clientes_Location"
+		}
+	}
+}

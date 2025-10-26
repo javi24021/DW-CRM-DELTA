@@ -1,0 +1,43 @@
+{
+	"name": "ds_bronze_productos_CANT_MANT_CSV",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_crm_delta",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "CSV"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "Productos_CAT_MANT.csv",
+				"container": "raw-crm"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "ID",
+				"type": "String"
+			},
+			{
+				"name": "CAT",
+				"type": "String"
+			},
+			{
+				"name": "SUBCAT",
+				"type": "String"
+			},
+			{
+				"name": "MAINTENANCE",
+				"type": "String"
+			}
+		]
+	}
+}

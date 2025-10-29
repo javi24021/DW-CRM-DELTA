@@ -51,7 +51,7 @@
 					"name": "cast1"
 				},
 				{
-					"name": "derivedColumn4"
+					"name": "cast2"
 				}
 			],
 			"scriptLines": [
@@ -107,8 +107,11 @@
 				"          prd_cost as decimal(10,2)",
 				"     ),",
 				"     errors: true) ~> cast1",
-				"cast1 derive(prd_cost = round(prd_cost, 2)) ~> derivedColumn4",
-				"derivedColumn4 sink(allowSchemaDrift: true,",
+				"cast1 cast(output(",
+				"          prd_cost as decimal(10,2)",
+				"     ),",
+				"     errors: true) ~> cast2",
+				"cast2 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          prd_id as integer,",

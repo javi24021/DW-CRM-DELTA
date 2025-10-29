@@ -306,6 +306,130 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/pipeline_silver')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Script1",
+						"type": "Script",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"linkedServiceName": {
+							"referenceName": "ls_db_crm",
+							"type": "LinkedServiceReference"
+						},
+						"typeProperties": {
+							"scripts": [
+								{
+									"type": "NonQuery",
+									"text": "DELETE from [Silver].[Cliente_Unificado]\nDELETE from [Silver].[Producto_Unificado]\nDELETE from [Silver].[Ventas]"
+								}
+							],
+							"scriptBlockExecutionTimeout": "02:00:00"
+						}
+					},
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Script1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_clientes",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"clientes": {},
+									"clientesGen": {},
+									"clientesLocation": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "Data flow2",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "Data flow1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_silver_prudctos",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"productosCatManr": {},
+									"Productos": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "SILVER"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_db_crm')]",
+				"[concat(variables('factoryId'), '/dataflows/df_silver_clientes')]",
+				"[concat(variables('factoryId'), '/dataflows/df_silver_prudctos')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_bronze_clientes_BD_GEN_CSV')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -607,6 +731,187 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/ls_crm_delta')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_silver_clientes_unificados')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_db_crm",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "SILVER"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "cst_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "cst_key",
+						"type": "nvarchar"
+					},
+					{
+						"name": "nombre_completo",
+						"type": "nvarchar"
+					},
+					{
+						"name": "estado_civil",
+						"type": "nvarchar"
+					},
+					{
+						"name": "genero",
+						"type": "nvarchar"
+					},
+					{
+						"name": "fecha_nacimiento",
+						"type": "date"
+					},
+					{
+						"name": "pais",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "silver",
+					"table": "Cliente_Unificado"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_db_crm')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_silver_productos_unificados')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_db_crm",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "SILVER"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "prd_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "prd_key",
+						"type": "nvarchar"
+					},
+					{
+						"name": "nombre_producto",
+						"type": "nvarchar"
+					},
+					{
+						"name": "costo",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 7
+					},
+					{
+						"name": "linea_producto",
+						"type": "nvarchar"
+					},
+					{
+						"name": "categoria",
+						"type": "nvarchar"
+					},
+					{
+						"name": "subcategoria",
+						"type": "nvarchar"
+					},
+					{
+						"name": "mantenimiento",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "silver",
+					"table": "Producto_Unificado"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_db_crm')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_silver_ventas')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_db_crm",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "SILVER"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "sls_ord_num",
+						"type": "nvarchar"
+					},
+					{
+						"name": "sls_prd_key",
+						"type": "nvarchar"
+					},
+					{
+						"name": "sls_cust_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "fecha_orden",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "fecha_envio",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "ventas",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 7
+					},
+					{
+						"name": "cantidad",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "precio",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "silver",
+					"table": "Ventas"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_db_crm')]"
 			]
 		},
 		{
@@ -1330,6 +1635,347 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_bronze_productos_CANT_MANT_CSV')]",
 				"[concat(variables('factoryId'), '/datasets/ds_sql_bronze_productos_CAT_MANT')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_silver_clientes')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "SILVER"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_sql_bronze_clientes",
+								"type": "DatasetReference"
+							},
+							"name": "clientes"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_sql_bronze_clientes_BD_GEN",
+								"type": "DatasetReference"
+							},
+							"name": "clientesGen"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_sql_bronze_clientes_location",
+								"type": "DatasetReference"
+							},
+							"name": "clientesLocation"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_silver_clientes_unificados",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "derivedColumn2"
+						},
+						{
+							"name": "derivedColumn3"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "join2"
+						},
+						{
+							"name": "derivedColumn4"
+						},
+						{
+							"name": "select1"
+						},
+						{
+							"name": "derivedColumn5"
+						},
+						{
+							"name": "derivedColumn6"
+						},
+						{
+							"name": "cast1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          cst_id as string,",
+						"          cst_key as string,",
+						"          cst_firstname as string,",
+						"          cst_lastname as string,",
+						"          cst_marital_status as string,",
+						"          cst_gndr as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> clientes",
+						"source(output(",
+						"          CID as string,",
+						"          BDATE as string,",
+						"          GEN as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> clientesGen",
+						"source(output(",
+						"          CID as string,",
+						"          CNTRY as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> clientesLocation",
+						"clientes derive(cst_key = substring(cst_key, 3, 20)) ~> derivedColumn1",
+						"clientesGen derive(CID = substring(CID, 6, 20)) ~> derivedColumn2",
+						"clientesLocation derive(CID = substring(CID, 4, 20)) ~> derivedColumn3",
+						"derivedColumn1, derivedColumn2 join(cst_key == CID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join1, derivedColumn3 join(cst_key == derivedColumn3@CID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join2",
+						"join2 derive(cst_lastname = concat(concat(cst_firstname, ' '), cst_lastname),",
+						"          cst_marital_status = iif(cst_marital_status == 'M', 'Casado',iif(cst_marital_status == 'S', 'Soltero', 'Otro')),",
+						"          cst_gndr = iif(isNull(GEN) || GEN == '', iif(cst_gndr == 'M', 'Male', 'Female'), GEN)) ~> derivedColumn4",
+						"derivedColumn4 select(mapColumn(",
+						"          cst_id,",
+						"          cst_key,",
+						"          cst_lastname,",
+						"          cst_marital_status,",
+						"          cst_gndr,",
+						"          BDATE,",
+						"          CNTRY",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 derive(cst_lastname = upper(trim(replace(replace(cst_lastname, '-', ''), ' ', ' '))),",
+						"          cst_marital_status = upper(trim(replace(replace(cst_marital_status, '-', ''), ' ', ''))),",
+						"          cst_gndr = upper(trim(replace(replace(cst_gndr, '-', ''), ' ', ''))),",
+						"          CNTRY = upper(trim(replace(replace(CNTRY, '-', ''), ' ', '')))) ~> derivedColumn5",
+						"derivedColumn5 derive(cst_gndr = iif(",
+						"  isNull(cst_gndr) || trim(cst_gndr) == '' || trim(cst_gndr) == 'NULL',",
+						"  'Unknown',",
+						"  upper(trim(cst_gndr))",
+						"),",
+						"          cst_lastname = iif(   isNull(cst_lastname) || trim(cst_lastname) == '' || trim(cst_lastname) == 'NULL',   'NOMBRE DESCONOCIDO',   upper(trim(replace(cst_lastname, '  ', ' '))) ),",
+						"          cst_marital_status = iif(   isNull(cst_marital_status) || trim(cst_marital_status) == '' || trim(cst_marital_status) == 'NULL',   'DESCONOCIDO',   upper(trim(cst_marital_status)) ),",
+						"          CNTRY = iif(   isNull(CNTRY) || trim(CNTRY) == '' || trim(CNTRY) == 'NULL',   'UNKNOWN',   upper(trim(CNTRY)) )) ~> derivedColumn6",
+						"derivedColumn6 cast(output(",
+						"          cst_id as integer,",
+						"          cst_key as string,",
+						"          BDATE as date 'yyyy-MM-dd'",
+						"     ),",
+						"     errors: true) ~> cast1",
+						"cast1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          cst_id as integer,",
+						"          cst_key as string,",
+						"          nombre_completo as string,",
+						"          estado_civil as string,",
+						"          genero as string,",
+						"          fecha_nacimiento as date,",
+						"          pais as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          cst_id,",
+						"          cst_key,",
+						"          nombre_completo = cst_lastname,",
+						"          estado_civil = cst_marital_status,",
+						"          genero = cst_gndr,",
+						"          fecha_nacimiento = BDATE,",
+						"          pais = CNTRY",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_sql_bronze_clientes')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sql_bronze_clientes_BD_GEN')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sql_bronze_clientes_location')]",
+				"[concat(variables('factoryId'), '/datasets/ds_silver_clientes_unificados')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_silver_prudctos')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "SILVER"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_sql_bronze_productos_CAT_MANT",
+								"type": "DatasetReference"
+							},
+							"name": "productosCatManr"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_sql_bronze_productos",
+								"type": "DatasetReference"
+							},
+							"name": "Productos"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_silver_productos_unificados",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "derivedColumn2"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "derivedColumn3"
+						},
+						{
+							"name": "select1"
+						},
+						{
+							"name": "cast1"
+						},
+						{
+							"name": "cast2"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          ID as string,",
+						"          CAT as string,",
+						"          SUBCAT as string,",
+						"          MAINTENANCE as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> productosCatManr",
+						"source(output(",
+						"          prd_id as string,",
+						"          prd_key as string,",
+						"          prd_nm as string,",
+						"          prd_cost as string,",
+						"          prd_line as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     format: 'table') ~> Productos",
+						"Productos derive(prd_key = upper(trim(replace(prd_key, '-', ''))),",
+						"          prd_cost = replace(prd_cost, ',', '.'),",
+						"          prd_category_key = concat(   upper(substring(prd_key, 1, 2)),   '_',   upper(substring(prd_key, 4, 2)) )) ~> derivedColumn1",
+						"productosCatManr derive(ID = upper(trim(ID))) ~> derivedColumn2",
+						"derivedColumn2, derivedColumn1 join(ID == prd_category_key,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join1 derive(CAT = upper(trim(CAT)),",
+						"          SUBCAT = upper(trim(SUBCAT)),",
+						"          MAINTENANCE = upper(trim(MAINTENANCE)),",
+						"          prd_nm = upper(trim(prd_nm)),",
+						"          prd_cost = iif(   isNull(prd_cost) || trim(toString(prd_cost)) == 'NULL' || trim(toString(prd_cost)) == '',   toDecimal(0.00),   toDecimal(replace(trim(toString(prd_cost)), ',', '.')) )) ~> derivedColumn3",
+						"derivedColumn3 select(mapColumn(",
+						"          CAT,",
+						"          SUBCAT,",
+						"          MAINTENANCE,",
+						"          prd_id,",
+						"          prd_key,",
+						"          prd_nm,",
+						"          prd_cost,",
+						"          prd_line",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select1",
+						"select1 cast(output(",
+						"          prd_id as integer,",
+						"          prd_cost as decimal(10,2)",
+						"     ),",
+						"     errors: true) ~> cast1",
+						"cast1 cast(output(",
+						"          prd_cost as decimal(10,2)",
+						"     ),",
+						"     errors: true) ~> cast2",
+						"cast2 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          prd_id as integer,",
+						"          prd_key as string,",
+						"          nombre_producto as string,",
+						"          costo as decimal(10,7),",
+						"          linea_producto as string,",
+						"          categoria as string,",
+						"          subcategoria as string,",
+						"          mantenimiento as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          prd_id,",
+						"          prd_key,",
+						"          nombre_producto = prd_nm,",
+						"          costo = prd_cost,",
+						"          linea_producto = prd_line,",
+						"          categoria = CAT,",
+						"          subcategoria = SUBCAT,",
+						"          mantenimiento = MAINTENANCE",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_sql_bronze_productos_CAT_MANT')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sql_bronze_productos')]",
+				"[concat(variables('factoryId'), '/datasets/ds_silver_productos_unificados')]"
 			]
 		}
 	]

@@ -372,6 +372,187 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/ds_silver_clientes_unificados')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_db_crm",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "SILVER"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "cst_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "cst_key",
+						"type": "nvarchar"
+					},
+					{
+						"name": "nombre_completo",
+						"type": "nvarchar"
+					},
+					{
+						"name": "estado_civil",
+						"type": "nvarchar"
+					},
+					{
+						"name": "genero",
+						"type": "nvarchar"
+					},
+					{
+						"name": "fecha_nacimiento",
+						"type": "date"
+					},
+					{
+						"name": "pais",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "silver",
+					"table": "Cliente_Unificado"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_db_crm')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_silver_productos_unificados')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_db_crm",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "SILVER"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "prd_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "prd_key",
+						"type": "nvarchar"
+					},
+					{
+						"name": "nombre_producto",
+						"type": "nvarchar"
+					},
+					{
+						"name": "costo",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 7
+					},
+					{
+						"name": "linea_producto",
+						"type": "nvarchar"
+					},
+					{
+						"name": "categoria",
+						"type": "nvarchar"
+					},
+					{
+						"name": "subcategoria",
+						"type": "nvarchar"
+					},
+					{
+						"name": "mantenimiento",
+						"type": "nvarchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "silver",
+					"table": "Producto_Unificado"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_db_crm')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_silver_ventas')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_db_crm",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "SILVER"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "sls_ord_num",
+						"type": "nvarchar"
+					},
+					{
+						"name": "sls_prd_key",
+						"type": "nvarchar"
+					},
+					{
+						"name": "sls_cust_id",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "fecha_orden",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "fecha_envio",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "ventas",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 7
+					},
+					{
+						"name": "cantidad",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "precio",
+						"type": "decimal",
+						"precision": 10,
+						"scale": 7
+					}
+				],
+				"typeProperties": {
+					"schema": "silver",
+					"table": "Ventas"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_db_crm')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/ds_sql_bronze_clientes')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -835,228 +1016,6 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_bronze_clientes_location_CSV')]",
 				"[concat(variables('factoryId'), '/datasets/ds_sql_bronze_clientes_location')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/df_bronze_detalle_ventas')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"folder": {
-					"name": "BRONZE"
-				},
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "ds_bronze_detalle_ventas_CSV",
-								"type": "DatasetReference"
-							},
-							"name": "source1"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "ds_sql_bronze_detalle_ventas",
-								"type": "DatasetReference"
-							},
-							"name": "sink1"
-						}
-					],
-					"transformations": [],
-					"scriptLines": [
-						"source(output(",
-						"          sls_ord_num as string,",
-						"          sls_prd_key as string,",
-						"          sls_cust_id as string,",
-						"          sls_order_dt as string,",
-						"          sls_ship_dt as string,",
-						"          sls_sales as string,",
-						"          sls_quantity as string,",
-						"          sls_price as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> source1",
-						"source1 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     input(",
-						"          sls_ord_num as string,",
-						"          sls_prd_key as string,",
-						"          sls_cust_id as string,",
-						"          sls_order_dt as string,",
-						"          sls_ship_dt as string,",
-						"          sls_sales as string,",
-						"          sls_quantity as string,",
-						"          sls_price as string",
-						"     ),",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     format: 'table',",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          sls_ord_num,",
-						"          sls_prd_key,",
-						"          sls_cust_id,",
-						"          sls_order_dt,",
-						"          sls_ship_dt,",
-						"          sls_sales,",
-						"          sls_quantity,",
-						"          sls_price",
-						"     )) ~> sink1"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_bronze_detalle_ventas_CSV')]",
-				"[concat(variables('factoryId'), '/datasets/ds_sql_bronze_detalle_ventas')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/df_bronze_productos')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"folder": {
-					"name": "BRONZE"
-				},
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "ds_bronze_productos_CSV",
-								"type": "DatasetReference"
-							},
-							"name": "source1"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "ds_sql_bronze_productos",
-								"type": "DatasetReference"
-							},
-							"name": "sink1"
-						}
-					],
-					"transformations": [],
-					"scriptLines": [
-						"source(output(",
-						"          prd_id as string,",
-						"          prd_key as string,",
-						"          prd_nm as string,",
-						"          prd_cost as string,",
-						"          prd_line as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> source1",
-						"source1 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     input(",
-						"          prd_id as string,",
-						"          prd_key as string,",
-						"          prd_nm as string,",
-						"          prd_cost as string,",
-						"          prd_line as string",
-						"     ),",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     format: 'table',",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          prd_id,",
-						"          prd_key,",
-						"          prd_nm,",
-						"          prd_cost,",
-						"          prd_line",
-						"     )) ~> sink1"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_bronze_productos_CSV')]",
-				"[concat(variables('factoryId'), '/datasets/ds_sql_bronze_productos')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/df_bronze_productos_CANT')]",
-			"type": "Microsoft.DataFactory/factories/dataflows",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"folder": {
-					"name": "BRONZE"
-				},
-				"type": "MappingDataFlow",
-				"typeProperties": {
-					"sources": [
-						{
-							"dataset": {
-								"referenceName": "ds_bronze_productos_CANT_MANT_CSV",
-								"type": "DatasetReference"
-							},
-							"name": "source1"
-						}
-					],
-					"sinks": [
-						{
-							"dataset": {
-								"referenceName": "ds_sql_bronze_productos_CAT_MANT",
-								"type": "DatasetReference"
-							},
-							"name": "sink1"
-						}
-					],
-					"transformations": [],
-					"scriptLines": [
-						"source(output(",
-						"          ID as string,",
-						"          CAT as string,",
-						"          SUBCAT as string,",
-						"          MAINTENANCE as string",
-						"     ),",
-						"     allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     ignoreNoFilesFound: false) ~> source1",
-						"source1 sink(allowSchemaDrift: true,",
-						"     validateSchema: false,",
-						"     input(",
-						"          ID as string,",
-						"          CAT as string,",
-						"          SUBCAT as string,",
-						"          MAINTENANCE as string",
-						"     ),",
-						"     deletable:false,",
-						"     insertable:true,",
-						"     updateable:false,",
-						"     upsertable:false,",
-						"     format: 'table',",
-						"     skipDuplicateMapInputs: true,",
-						"     skipDuplicateMapOutputs: true,",
-						"     errorHandlingOption: 'stopOnFirstError',",
-						"     mapColumn(",
-						"          ID,",
-						"          CAT,",
-						"          SUBCAT,",
-						"          MAINTENANCE",
-						"     )) ~> sink1"
-					]
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/ds_bronze_productos_CANT_MANT_CSV')]",
-				"[concat(variables('factoryId'), '/datasets/ds_sql_bronze_productos_CAT_MANT')]"
 			]
 		}
 	]

@@ -1,0 +1,144 @@
+{
+	"name": "df_silver_prudctos",
+	"properties": {
+		"folder": {
+			"name": "SILVER"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_sql_bronze_productos_CAT_MANT",
+						"type": "DatasetReference"
+					},
+					"name": "productosCatManr"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_sql_bronze_productos",
+						"type": "DatasetReference"
+					},
+					"name": "Productos"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_silver_productos_unificados",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "derivedColumn2"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "derivedColumn3"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "cast1"
+				},
+				{
+					"name": "derivedColumn4"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ID as string,",
+				"          CAT as string,",
+				"          SUBCAT as string,",
+				"          MAINTENANCE as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> productosCatManr",
+				"source(output(",
+				"          prd_id as string,",
+				"          prd_key as string,",
+				"          prd_nm as string,",
+				"          prd_cost as string,",
+				"          prd_line as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> Productos",
+				"Productos derive(prd_key = upper(trim(replace(prd_key, '-', ''))),",
+				"          prd_cost = replace(prd_cost, ',', '.'),",
+				"          prd_category_key = concat(   upper(substring(prd_key, 1, 2)),   '_',   upper(substring(prd_key, 4, 2)) )) ~> derivedColumn1",
+				"productosCatManr derive(ID = upper(trim(ID))) ~> derivedColumn2",
+				"derivedColumn2, derivedColumn1 join(ID == prd_category_key,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 derive(CAT = upper(trim(CAT)),",
+				"          SUBCAT = upper(trim(SUBCAT)),",
+				"          MAINTENANCE = upper(trim(MAINTENANCE)),",
+				"          prd_nm = upper(trim(prd_nm)),",
+				"          prd_cost = iif(   isNull(prd_cost) || trim(toString(prd_cost)) == 'NULL' || trim(toString(prd_cost)) == '',   toDecimal(0.00),   toDecimal(replace(trim(toString(prd_cost)), ',', '.')) )) ~> derivedColumn3",
+				"derivedColumn3 select(mapColumn(",
+				"          CAT,",
+				"          SUBCAT,",
+				"          MAINTENANCE,",
+				"          prd_id,",
+				"          prd_key,",
+				"          prd_nm,",
+				"          prd_cost,",
+				"          prd_line",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 cast(output(",
+				"          prd_id as integer,",
+				"          prd_cost as decimal(10,2)",
+				"     ),",
+				"     errors: true) ~> cast1",
+				"cast1 derive(prd_cost = round(prd_cost, 2)) ~> derivedColumn4",
+				"derivedColumn4 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          prd_id as integer,",
+				"          prd_key as string,",
+				"          nombre_producto as string,",
+				"          costo as decimal(10,7),",
+				"          linea_producto as string,",
+				"          categoria as string,",
+				"          subcategoria as string,",
+				"          mantenimiento as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          prd_id,",
+				"          prd_key,",
+				"          nombre_producto = prd_nm,",
+				"          costo = prd_cost,",
+				"          linea_producto = prd_line,",
+				"          categoria = CAT,",
+				"          subcategoria = SUBCAT,",
+				"          mantenimiento = MAINTENANCE",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

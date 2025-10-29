@@ -51,5 +51,6 @@
 			"schema": "silver",
 			"table": "Producto_Unificado"
 		}
-	}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
 }

@@ -1,5 +1,5 @@
 {
-	"name": "pipeline_silver",
+	"name": "pipeline_gold",
 	"properties": {
 		"activities": [
 			{
@@ -22,7 +22,7 @@
 					"scripts": [
 						{
 							"type": "NonQuery",
-							"text": "DELETE from [Silver].[Cliente_Unificado]\nDELETE from [Silver].[Producto_Unificado]\nDELETE from [Silver].[Ventas]"
+							"text": "DELETE FROM [gold].[Fact_Ventas]\nDELETE FROM [gold].[Dim_Cliente]\nDELETE FROM [gold].[Dim_Categoria_Producto]\nDELETE FROM [gold].[Dim_Producto]\nDELETE FROM [gold].[Dim_Fecha]"
 						}
 					],
 					"scriptBlockExecutionTimeout": "02:00:00"
@@ -49,7 +49,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "df_silver_clientes",
+						"referenceName": "df_gold_clientes",
 						"type": "DataFlowReference"
 					},
 					"compute": {
@@ -80,7 +80,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "df_silver_prudctos",
+						"referenceName": "df_gold_dim_Categoria_producto",
 						"type": "DataFlowReference"
 					},
 					"compute": {
@@ -111,7 +111,38 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "df_silver_ventas",
+						"referenceName": "dF_gold_producto",
+						"type": "DataFlowReference"
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Data flow4",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Data flow3",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_gold_dim_fecha",
 						"type": "DataFlowReference"
 					},
 					"compute": {
@@ -123,7 +154,7 @@
 			}
 		],
 		"folder": {
-			"name": "SILVER"
+			"name": "GOLD"
 		},
 		"annotations": []
 	}

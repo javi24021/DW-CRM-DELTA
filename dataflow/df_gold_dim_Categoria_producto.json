@@ -1,0 +1,95 @@
+{
+	"name": "df_gold_dim_Categoria_producto",
+	"properties": {
+		"folder": {
+			"name": "GOLD"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_silver_productos_unificados",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_gold_dim_categoria_producto",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "select1"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "select2"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          prd_id as integer,",
+				"          prd_key as string,",
+				"          nombre_producto as string,",
+				"          costo as decimal(10,7),",
+				"          linea_producto as string,",
+				"          categoria as string,",
+				"          subcategoria as string,",
+				"          mantenimiento as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source1",
+				"source1 select(mapColumn(",
+				"          categoria,",
+				"          subcategoria,",
+				"          requiere_mantenimiento = mantenimiento",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 aggregate(groupBy(categoria,",
+				"          subcategoria,",
+				"          requiere_mantenimiento),",
+				"     conteo = count(1)) ~> aggregate1",
+				"aggregate1 select(mapColumn(",
+				"          categoria,",
+				"          subcategoria,",
+				"          requiere_mantenimiento",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"select2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id_categoria as integer,",
+				"          categoria as string,",
+				"          subcategoria as string,",
+				"          requiere_mantenimiento as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          categoria,",
+				"          subcategoria,",
+				"          requiere_mantenimiento",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

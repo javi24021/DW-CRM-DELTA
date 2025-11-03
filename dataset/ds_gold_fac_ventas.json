@@ -1,0 +1,79 @@
+{
+	"name": "ds_gold_fac_ventas",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_db_crm",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "GOLD"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "id_venta",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "id_cliente",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "id_producto",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "id_categoria",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "id_fecha_orden",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "id_fecha_envio",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "cantidad",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "precio_unitario",
+				"type": "decimal",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "costo_total",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 2
+			},
+			{
+				"name": "ventas_totales",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 2
+			},
+			{
+				"name": "ganancia",
+				"type": "decimal",
+				"precision": 18,
+				"scale": 2
+			}
+		],
+		"typeProperties": {
+			"schema": "gold",
+			"table": "Fact_Ventas"
+		}
+	}
+}

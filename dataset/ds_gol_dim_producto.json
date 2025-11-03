@@ -1,0 +1,43 @@
+{
+	"name": "ds_gol_dim_producto",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_db_crm",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "GOLD"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "id_producto",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "prd_key",
+				"type": "nvarchar"
+			},
+			{
+				"name": "nombre_producto",
+				"type": "nvarchar"
+			},
+			{
+				"name": "costo_unitario",
+				"type": "decimal",
+				"precision": 10,
+				"scale": 2
+			},
+			{
+				"name": "linea_producto",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "gold",
+			"table": "Dim_Producto"
+		}
+	}
+}

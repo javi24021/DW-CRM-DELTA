@@ -89,7 +89,7 @@
 				"          SUBCAT = upper(trim(SUBCAT)),",
 				"          MAINTENANCE = upper(trim(MAINTENANCE)),",
 				"          prd_nm = upper(trim(prd_nm)),",
-				"          prd_cost = iif(   isNull(prd_cost) || trim(toString(prd_cost)) == 'NULL' || trim(toString(prd_cost)) == '',   toDecimal(0.00),   toDecimal(replace(trim(toString(prd_cost)), ',', '.')) )) ~> derivedColumn3",
+				"          prd_cost = iif(isNull(prd_cost) || prd_cost == '', toDecimal(null()), toDecimal(prd_cost, 10, 2))) ~> derivedColumn3",
 				"derivedColumn3 select(mapColumn(",
 				"          CAT,",
 				"          SUBCAT,",

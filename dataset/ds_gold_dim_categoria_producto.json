@@ -1,0 +1,37 @@
+{
+	"name": "ds_gold_dim_categoria_producto",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_db_crm",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "GOLD"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "id_categoria",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "categoria",
+				"type": "nvarchar"
+			},
+			{
+				"name": "subcategoria",
+				"type": "nvarchar"
+			},
+			{
+				"name": "requiere_mantenimiento",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "gold",
+			"table": "Dim_Categoria_Producto"
+		}
+	}
+}

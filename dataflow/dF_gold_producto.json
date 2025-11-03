@@ -1,0 +1,81 @@
+{
+	"name": "dF_gold_producto",
+	"properties": {
+		"folder": {
+			"name": "GOLD"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_silver_productos_unificados",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_gol_dim_producto",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "select1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          prd_id as integer,",
+				"          prd_key as string,",
+				"          nombre_producto as string,",
+				"          costo as decimal(10,7),",
+				"          linea_producto as string,",
+				"          categoria as string,",
+				"          subcategoria as string,",
+				"          mantenimiento as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source1",
+				"source1 select(mapColumn(",
+				"          prd_key,",
+				"          nombre_producto,",
+				"          costo_unitario = costo,",
+				"          linea_producto",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id_producto as integer,",
+				"          prd_key as string,",
+				"          nombre_producto as string,",
+				"          costo_unitario as decimal(10,2),",
+				"          linea_producto as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          prd_key,",
+				"          nombre_producto,",
+				"          costo_unitario,",
+				"          linea_producto",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

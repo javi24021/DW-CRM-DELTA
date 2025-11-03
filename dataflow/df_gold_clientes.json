@@ -1,0 +1,87 @@
+{
+	"name": "df_gold_clientes",
+	"properties": {
+		"folder": {
+			"name": "GOLD"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_silver_clientes_unificados",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_gold_dim_Cliente",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "select1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          cst_id as integer,",
+				"          cst_key as string,",
+				"          nombre_completo as string,",
+				"          estado_civil as string,",
+				"          genero as string,",
+				"          fecha_nacimiento as date,",
+				"          pais as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source1",
+				"source1 select(mapColumn(",
+				"          cst_id,",
+				"          cst_key,",
+				"          nombre_completo,",
+				"          estado_civil,",
+				"          genero,",
+				"          fecha_nacimiento,",
+				"          pais",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id_cliente as integer,",
+				"          cst_key as string,",
+				"          nombre_completo as string,",
+				"          estado_civil as string,",
+				"          genero as string,",
+				"          fecha_nacimiento as date,",
+				"          pais as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          cst_key,",
+				"          nombre_completo,",
+				"          estado_civil,",
+				"          genero,",
+				"          fecha_nacimiento,",
+				"          pais",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

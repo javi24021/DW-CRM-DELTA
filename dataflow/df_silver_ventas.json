@@ -1,0 +1,101 @@
+{
+	"name": "df_silver_ventas",
+	"properties": {
+		"folder": {
+			"name": "SILVER"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_sql_bronze_detalle_ventas",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_silver_ventas",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "cast1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          sls_ord_num as string,",
+				"          sls_prd_key as string,",
+				"          sls_cust_id as string,",
+				"          sls_order_dt as string,",
+				"          sls_ship_dt as string,",
+				"          sls_sales as string,",
+				"          sls_quantity as string,",
+				"          sls_price as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source1",
+				"source1 derive(sls_cust_id = toInteger(sls_cust_id),",
+				"          sls_sales = toDecimal(sls_sales, 10, 2),",
+				"          sls_quantity = toInteger(sls_quantity),",
+				"          sls_price = toDecimal(sls_price, 10, 2),",
+				"          sls_order_dt = toTimestamp(sls_order_dt, 'yyyyMMdd'),",
+				"          sls_ship_dt = toTimestamp(sls_ship_dt, 'yyyyMMdd'),",
+				"          sls_prd_key = upper(trim(replace(sls_prd_key, '-', '')))) ~> derivedColumn1",
+				"derivedColumn1 cast(output(",
+				"          sls_ord_num as string,",
+				"          sls_prd_key as string,",
+				"          sls_cust_id as integer,",
+				"          sls_order_dt as timestamp,",
+				"          sls_ship_dt as timestamp,",
+				"          sls_sales as decimal(10,2),",
+				"          sls_quantity as integer,",
+				"          sls_price as decimal(10,2)",
+				"     ),",
+				"     errors: true) ~> cast1",
+				"cast1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          sls_ord_num as string,",
+				"          sls_prd_key as string,",
+				"          sls_cust_id as integer,",
+				"          fecha_orden as timestamp,",
+				"          fecha_envio as timestamp,",
+				"          ventas as decimal(10,7),",
+				"          cantidad as integer,",
+				"          precio as decimal(10,7)",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          sls_ord_num,",
+				"          sls_prd_key,",
+				"          sls_cust_id,",
+				"          fecha_orden = sls_order_dt,",
+				"          fecha_envio = sls_ship_dt,",
+				"          ventas = sls_sales,",
+				"          cantidad = sls_quantity,",
+				"          precio = sls_price",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

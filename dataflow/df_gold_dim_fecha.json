@@ -1,0 +1,165 @@
+{
+	"name": "df_gold_dim_fecha",
+	"properties": {
+		"folder": {
+			"name": "GOLD"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_silver_ventas",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_silver_ventas",
+						"type": "DatasetReference"
+					},
+					"name": "source2"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_gold_dim_fecha",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "select2"
+				},
+				{
+					"name": "select3"
+				},
+				{
+					"name": "union1"
+				},
+				{
+					"name": "aggregate1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "select4"
+				},
+				{
+					"name": "cast1"
+				},
+				{
+					"name": "sort1"
+				},
+				{
+					"name": "filter1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          sls_ord_num as string,",
+				"          sls_prd_key as string,",
+				"          sls_cust_id as integer,",
+				"          fecha_orden as timestamp,",
+				"          fecha_envio as timestamp,",
+				"          ventas as decimal(10,7),",
+				"          cantidad as integer,",
+				"          precio as decimal(10,7)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source1",
+				"source(output(",
+				"          sls_ord_num as string,",
+				"          sls_prd_key as string,",
+				"          sls_cust_id as integer,",
+				"          fecha_orden as timestamp,",
+				"          fecha_envio as timestamp,",
+				"          ventas as decimal(10,7),",
+				"          cantidad as integer,",
+				"          precio as decimal(10,7)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source2",
+				"source1 select(mapColumn(",
+				"          fecha = fecha_orden",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"source2 select(mapColumn(",
+				"          fecha = fecha_envio",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select3",
+				"select2, select3 union(byName: true)~> union1",
+				"union1 aggregate(groupBy(fecha),",
+				"     conteo = count(1)) ~> aggregate1",
+				"filter1 derive(id_fecha = toInteger(toString(fecha, 'yyyyMMdd')),",
+				"          anio = year(fecha),",
+				"          mes = month(fecha),",
+				"          nombre_mes = toString(fecha, 'MMMM'),",
+				"          dia = dayOfMonth(fecha),",
+				"          trimestre = toInteger(ceil(month(fecha) / 3.0))) ~> derivedColumn1",
+				"derivedColumn1 select(mapColumn(",
+				"          fecha,",
+				"          id_fecha,",
+				"          anio,",
+				"          mes,",
+				"          nombre_mes,",
+				"          dia,",
+				"          trimestre",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select4",
+				"select4 cast(output(",
+				"          fecha as timestamp,",
+				"          id_fecha as integer,",
+				"          anio as integer,",
+				"          mes as integer,",
+				"          nombre_mes as string,",
+				"          dia as integer,",
+				"          trimestre as integer",
+				"     ),",
+				"     errors: true) ~> cast1",
+				"cast1 sort(asc(anio, true)) ~> sort1",
+				"aggregate1 filter(!isNull(fecha)) ~> filter1",
+				"sort1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id_fecha as integer,",
+				"          fecha as date,",
+				"          anio as integer,",
+				"          mes as integer,",
+				"          nombre_mes as string,",
+				"          dia as integer,",
+				"          trimestre as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          id_fecha,",
+				"          fecha,",
+				"          anio,",
+				"          mes,",
+				"          nombre_mes,",
+				"          dia,",
+				"          trimestre",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}
